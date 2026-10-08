@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>傳奇卡牌工坊 | katee No.001/001 SAR 3D 鐳射黑金浮雕卡</title>
+  <meta name="description" content="傳奇卡牌工坊：katee No.001/001 ★★★★★★ SAR 暗影黑核心 3D 鐳射黑金浮雕卡牌。支援即時 3D 視角、陀螺儀、全息箔膜折射、即時圖文編輯與高解析度 PNG 匯出。">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cinzel+Decorative:wght@700;900&family=Noto+Serif+TC:wght@500;700;900&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- html2canvas CDN for High-Res PNG Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       CSS DESIGN TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --bg-dark: #07050e;
+      --bg-deep: #0e0918;
+      --bg-glass: rgba(18, 12, 33, 0.72);
+      --bg-glass-border: rgba(168, 85, 247, 0.28);
+      
+      --gold-primary: #f59e0b;
+      --gold-sheen: #fbbf24;
+      --gold-leaf: #d4af37;
+      --gold-glow: rgba(245, 158, 11, 0.45);
+      
+      --purple-neon: #a855f7;
+      --purple-arcane: #c084fc;
+      --purple-glow: rgba(147, 51, 234, 0.5);
+      --amethyst: #e879f9;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      /* 3D Dynamics & Coordinates */
+      --rx: 0deg;
+      --ry: 0deg;
+      --mx: 50%;
+      --my: 50%;
+      --glare-opacity: 0.85;
+      --spring-trans: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    body.mode-day {
+      --bg-dark: #120e24;
+      --bg-deep: #1d163a;
+      --bg-glass: rgba(26, 18, 50, 0.82);
+      --bg-glass-border: rgba(192, 132, 252, 0.35);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.45;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Background Ambient Canvas */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .vignette-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, transparent 20%, rgba(5, 3, 10, 0.72) 75%, rgba(2, 1, 6, 0.96) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ==========================================================================
+       HEADER BAR
+       ========================================================================== */
+    .workshop-header {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px clamp(16px, 3vw, 36px);
+      background: rgba(10, 6, 20, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(147, 51, 234, 0.22);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-crest {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, #3b0764 0%, #1e1b4b 100%);
+      border: 1.5px solid var(--purple-arcane);
+      border-radius: 10px;
+      box-shadow: 0 0 16px var(--purple-glow);
+    }
+
+    .crest-icon {
+      font-size: 20px;
+      filter: drop-shadow(0 0 6px #c084fc);
+    }
+
+    .brand-titles .main-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.95rem, 2vw, 1.25rem);
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .main-title span {
+      font-family: 'Noto Serif TC', serif;
+      font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+      font-weight: 700;
+      color: var(--gold-sheen);
+      letter-spacing: 0.8px;
+    }
+
+    .brand-titles .sub-title {
+      font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-icon-btn {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-icon-btn:hover {
+      background: rgba(147, 51, 234, 0.25);
+      border-color: var(--purple-arcane);
+      transform: translateY(-2px);
+    }
+
+    .action-icon-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--gold-sheen);
+      color: var(--gold-sheen);
+    }
+
+    /* ==========================================================================
+       RESPONSIVE LAYOUT (RWD)
+       Desktop (≥1024px): 2 Columns (Card Stage Left, Glass Studio Right)
+       Tablet (768px - 1023px): Optimized Paddings & Proportional Scaling
+       Mobile (<768px): Vertical Stack (Card Top, Controls Bottom)
+       ========================================================================== */
+    .forge-workspace {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr minmax(360px, 440px);
+      gap: clamp(16px, 2.5vw, 32px);
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: clamp(14px, 2vw, 28px);
+      width: 100%;
+      flex: 1;
+    }
+
+    @media (max-width: 1023px) and (min-width: 768px) {
+      .forge-workspace {
+        grid-template-columns: 1fr 370px;
+        padding: 16px;
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .forge-workspace {
+        grid-template-columns: 1fr;
+        padding: 12px 12px 48px;
+        gap: 20px;
+      }
+      .workshop-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .header-actions {
+        align-self: flex-end;
+      }
+    }
+
+    /* ==========================================================================
+       LEFT / CENTER: 3D CARD DISPLAY STAGE
+       ========================================================================== */
+    .card-stage-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 520px;
+      padding: 10px 0;
+    }
+
+    .astral-moon {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(240px, 40vw, 340px);
+      height: clamp(240px, 40vw, 340px);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+      transition: opacity 0.6s ease;
+    }
+
+    .moon-body {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f3e8ff 0%, #c084fc 40%, #7e22ce 70%, transparent 85%);
+      box-shadow: 0 0 70px rgba(192, 132, 252, 0.4), 0 0 140px rgba(147, 51, 234, 0.2);
+      animation: moonPulse 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes moonPulse {
+      0% { transform: scale(0.96); }
+      100% { transform: scale(1.04); }
+    }
+
+    body.mode-day .astral-moon {
+      opacity: 0.2;
+    }
+
+    /* Interaction Hint Bar */
+    .interaction-hint {
+      position: relative;
+      z-index: 10;
+      margin-bottom: 14px;
+      background: rgba(22, 15, 38, 0.75);
+      border: 1px solid rgba(147, 51, 234, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: clamp(0.72rem, 1.4vw, 0.8rem);
+      color: var(--purple-arcane);
+      backdrop-filter: blur(8px);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 3D CARD ENGINE & TCG GOLDEN PROPORTIONS */
+    .card-scene {
+      perspective: 1000px;
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .card-wrapper {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: var(--spring-trans);
+      will-change: transform;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .card-wrapper.is-tracking {
+      transition: none; /* Instant 0ms response when active tracking */
+    }
+
+    .card-wrapper:active {
+      cursor: grabbing;
+    }
+
+    /* Outer Case / Slab Container */
+    .card-case {
+      position: relative;
+      border-radius: 22px;
+      transform-style: preserve-3d;
+      transition: all 0.35s ease;
+    }
+
+    /* PSA 10 Grading Slab */
+    .card-case.slab-psa {
+      padding: 12px 12px 16px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.18) 100%),
+                  rgba(15, 10, 25, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.38);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.88),
+                  0 0 30px rgba(147, 51, 234, 0.35),
+                  inset 0 1px 2px rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .case-header {
+      margin-bottom: 10px;
+    }
+    .card-case.slab-psa .case-header { display: block; }
+    .card-case.slab-magnetic .case-header,
+    .card-case.slab-raw .case-header { display: none; }
+
+    .psa-label {
+      background: #ffffff;
+      border: 1.5px solid #dc2626;
+      border-radius: 5px;
+      padding: 5px 10px;
+      display: grid;
+      grid-template-columns: 75px 1fr 85px;
+      align-items: center;
+      gap: 6px;
+      color: #111;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+
+    .psa-brand {
+      display: flex;
+      flex-direction: column;
+      border-right: 1.5px solid #dc2626;
+      padding-right: 4px;
+    }
+    .psa-logo {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 1.05rem;
+      color: #dc2626;
+    }
+    .psa-grade {
+      font-weight: 800;
+      font-size: 0.68rem;
+    }
+    .psa-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .psa-line-1 { font-size: 0.62rem; font-weight: 700; color: #475569; }
+    .psa-line-2 { font-size: 0.72rem; font-weight: 800; color: #0f172a; }
+    .psa-line-3 { font-size: 0.58rem; font-weight: 700; color: #b45309; }
+
+    .psa-barcode-area {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .psa-barcode {
+      width: 72px;
+      height: 14px;
+      background: repeating-linear-gradient(90deg, #111 0px, #111 2px, transparent 2px, transparent 4px, #111 4px, #111 7px, transparent 7px, transparent 8px);
+    }
+    .psa-cert-num {
+      font-size: 0.58rem;
+      font-family: monospace;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    /* Magnetic One-Touch Slab */
+    .card-case.slab-magnetic {
+      padding: 14px;
+      background: rgba(20, 15, 30, 0.65);
+      border: 3px solid rgba(212, 175, 55, 0.65);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 25px rgba(245, 158, 11, 0.3);
+      backdrop-filter: blur(8px);
+    }
+    .card-case.slab-magnetic::before,
+    .card-case.slab-magnetic::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fef08a 0%, #d4af37 60%, #78350f 100%);
+      box-shadow: 0 0 5px rgba(245, 158, 11, 0.8);
+    }
+    .card-case.slab-magnetic::before { left: 10px; }
+    .card-case.slab-magnetic::after { right: 10px; }
+
+    /* Raw Card */
+    .card-case.slab-raw {
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    /* ==========================================================================
+       THE PHYSICAL CARD (TCG RATIO 63/88 & FLUID CLAMP SIZING)
+       ========================================================================== */
+    .card-inner {
+      position: relative;
+      /* Fixed TCG Standard Ratio: 63 / 88 */
+      aspect-ratio: 63 / 88;
+      width: min(88vw, 380px);
+      border-radius: 16px;
+      transform-style: preserve-3d;
+      transition: transform 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card-inner.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65);
+    }
+
+    /* ==========================================================================
+       DYNAMIC LASER FOIL SHADER SYSTEM
+       ========================================================================== */
+    .foil-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      border-radius: 16px;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Dynamic Glare Hotspot */
+    .foil-glare {
+      mix-blend-mode: color-dodge;
+      opacity: var(--glare-opacity);
+      background: radial-gradient(
+        circle at var(--mx) var(--my),
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(255, 255, 255, 0.35) 22%,
+        transparent 65%
+      );
+    }
+
+    /* 1. Foil Mode: Gold Ultra 黑金浮雕 (Default) */
+    .foil-gold-ultra .foil-holo {
+      opacity: 0.95;
+      mix-blend-mode: overlay;
+      background: conic-gradient(
+        from calc(var(--rx) * 6deg) at var(--mx) var(--my),
+        rgba(245, 158, 11, 0.45) 0deg,
+        rgba(254, 240, 138, 0.65) 60deg,
+        rgba(180, 83, 9, 0.3) 120deg,
+        rgba(217, 119, 6, 0.7) 180deg,
+        rgba(254, 240, 138, 0.55) 240deg,
+        rgba(245, 158, 11, 0.45) 360deg
+      );
+    }
+    .foil-gold-ultra .foil-emboss {
+      opacity: 0.8;
+      mix-blend-mode: screen;
+      background: 
+        radial-gradient(circle at var(--mx) var(--my), rgba(254, 240, 138, 0.45) 0%, transparent 60%),
+        repeating-linear-gradient(45deg, rgba(212, 175, 55, 0.08) 0px, rgba(212, 175, 55, 0.08) 2px, transparent 2px, transparent 6px);
+    }
+
+    /* 2. Foil Mode: Cosmic Holo 幻彩星河 */
+    .foil-cosmic-holo .foil-holo {
+      opacity: 0.9;
+      mix-blend-mode: color-dodge;
+      background: linear-gradient(
+        calc(var(--rx) * 5deg + 115deg),
+        transparent 15%,
+        rgba(244, 63, 94, 0.55) 25%,
+        rgba(234, 179, 8, 0.55) 35%,
+        rgba(34, 197, 94, 0.55) 45%,
+        rgba(6, 182, 212, 0.65) 55%,
+        rgba(168, 85, 247, 0.65) 65%,
+        rgba(236, 72, 153, 0.55) 75%,
+        transparent 90%
+      );
+    }
+    .foil-cosmic-holo .foil-emboss {
+      opacity: 0.85;
+      mix-blend-mode: screen;
+      background: radial-gradient(circle at var(--mx) var(--my), rgba(168, 85, 247, 0.6) 0%, transparent 50%),
+                  radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                  radial-gradient(2px 2px at 80px 120px, #ffd700, rgba(0,0,0,0)),
+                  radial-gradient(2px 2px at 150px 70px, #00ffff, rgba(0,0,0,0));
+      background-size: 100% 100%, 120px 120px, 140px 140px, 160px 160px;
+    }
+
+    /* 3. Foil Mode: Secret Rare 碎鑽稜鏡 */
+    .foil-secret-rare .foil-holo {
+      opacity: 0.88;
+      mix-blend-mode: color-dodge;
+      background: conic-gradient(
+        from calc(var(--ry) * 8deg) at var(--mx) var(--my),
+        #ff0055 0deg, #ff9900 60deg, #ffff00 120deg, #00ff66 180deg, #00ffff 240deg, #9900ff 300deg, #ff0055 360deg
+      );
+    }
+    .foil-secret-rare .foil-emboss {
+      opacity: 0.75;
+      mix-blend-mode: overlay;
+      background: repeating-conic-gradient(from 45deg at 50% 50%, rgba(255,255,255,0.25) 0deg 15deg, transparent 15deg 30deg);
+    }
+
+    /* 4. Foil Mode: Phantom Rainbow 幽暗虹彩 */
+    .foil-phantom-rainbow .foil-holo {
+      opacity: 0.9;
+      mix-blend-mode: hard-light;
+      background: linear-gradient(
+        calc(var(--ry) * 4deg + 45deg),
+        rgba(147, 51, 234, 0.65) 0%,
+        rgba(59, 130, 246, 0.65) 30%,
+        rgba(16, 185, 129, 0.55) 60%,
+        rgba(236, 72, 153, 0.65) 100%
+      );
+    }
+
+    /* 5. Foil Mode: Silver Sterling 白銀秘銀 */
+    .foil-silver-sterling .foil-holo {
+      opacity: 0.85;
+      mix-blend-mode: overlay;
+      background: linear-gradient(
+        calc(var(--rx) * 6deg + 90deg),
+        rgba(255,255,255,0.1) 0%,
+        rgba(241, 245, 249, 0.75) 40%,
+        rgba(148, 163, 184, 0.4) 60%,
+        rgba(255,255,255,0.85) 75%,
+        rgba(203, 213, 225, 0.2) 100%
+      );
+    }
+
+    /* ==========================================================================
+       CARD FRONT LAYOUT & CONTENT
+       ========================================================================== */
+    .card-front {
+      background: radial-gradient(circle at 50% 20%, #1c0e35 0%, #100820 60%, #080312 100%);
+      border: 3px solid #1a102a;
+      outline: 2px solid rgba(212, 175, 55, 0.65);
+      outline-offset: -3px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-frame {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      padding: clamp(8px, 1.8cqi, 12px) clamp(10px, 2.2cqi, 14px) clamp(6px, 1.5cqi, 10px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(30, 16, 52, 0.55) 0%, rgba(14, 7, 26, 0.75) 100%);
+    }
+
+    /* Contenteditable Highlighting */
+    [contenteditable="true"] {
+      outline: none;
+      border-radius: 3px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    [contenteditable="true"]:hover {
+      background: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.4);
+      cursor: text;
+    }
+    [contenteditable="true"]:focus {
+      background: rgba(245, 158, 11, 0.25);
+      box-shadow: 0 0 0 1.5px #fbbf24;
+      cursor: text;
+    }
+
+    /* Top Identity Bar */
+    .card-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid rgba(212, 175, 55, 0.4);
+      padding-bottom: 4px;
+    }
+
+    .top-identity {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .element-orb {
+      width: clamp(24px, 5.5cqi, 28px);
+      height: clamp(24px, 5.5cqi, 28px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #4c1d95 0%, #1e1136 70%, #000 100%);
+      border: 1.5px solid var(--gold-sheen);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+      font-size: 13px;
+    }
+
+    .card-titles-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+    .card-type-tag {
+      font-size: clamp(0.52rem, 1.4cqi, 0.6rem);
+      color: var(--gold-sheen);
+      font-weight: 700;
+    }
+    .card-character-name {
+      font-family: 'Cinzel', 'Noto Serif TC', serif;
+      font-size: clamp(1.05rem, 3.2cqi, 1.25rem);
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+      line-height: 1.1;
+    }
+
+    .top-stats {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hp-gauge {
+      background: linear-gradient(135deg, #7c2d12 0%, #450a0a 100%);
+      border: 1.5px solid #ef4444;
+      border-radius: 5px;
+      padding: 1px 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    }
+    .hp-label { font-size: 0.58rem; font-weight: 800; color: #fca5a5; }
+    .hp-val { font-size: clamp(0.9rem, 2.8cqi, 1.05rem); font-weight: 900; color: #fff; }
+
+    .rank-tag {
+      background: linear-gradient(135deg, #78350f 0%, #451a03 100%);
+      border: 1.5px solid var(--gold-sheen);
+      border-radius: 5px;
+      padding: 2px 6px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .rank-crown { font-size: 10px; }
+    .rank-title { font-family: 'Cinzel', serif; font-size: 0.6rem; font-weight: 900; color: #fef08a; }
+
+    /* Stars Row */
+    .card-stars-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 2px 0;
+    }
+    .stars-list {
+      display: flex;
+      gap: 2px;
+      color: #fbbf24;
+      font-size: clamp(11px, 2.5cqi, 13px);
+      filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.8));
+    }
+    .rarity-badge-sar {
+      font-family: 'Cinzel', sans-serif;
+      font-size: clamp(0.55rem, 1.4cqi, 0.62rem);
+      font-weight: 900;
+      letter-spacing: 1px;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Artwork Box & Upload Overlay */
+    .card-art-box {
+      position: relative;
+      width: 100%;
+      height: clamp(140px, 34cqi, 185px);
+      border-radius: 9px;
+      overflow: hidden;
+      border: 2px solid rgba(212, 175, 55, 0.7);
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .card-illustration {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+    }
+
+    .art-frame-border {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 1px solid rgba(254, 240, 138, 0.3);
+      z-index: 2;
+    }
+    .corner-filigree {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-color: var(--gold-sheen);
+      border-style: solid;
+    }
+    .corner-filigree.top-left { top: 2px; left: 2px; border-width: 2px 0 0 2px; }
+    .corner-filigree.top-right { top: 2px; right: 2px; border-width: 2px 2px 0 0; }
+    .corner-filigree.bottom-left { bottom: 2px; left: 2px; border-width: 0 0 2px 2px; }
+    .corner-filigree.bottom-right { bottom: 2px; right: 2px; border-width: 0 2px 2px 0; }
+
+    .art-upload-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 5, 20, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 4;
+      font-size: 0.72rem;
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .card-art-box:hover .art-upload-overlay {
+      opacity: 1;
+    }
+
+    .art-badge-tag {
+      position: absolute;
+      bottom: 3px;
+      right: 5px;
+      background: rgba(10, 5, 20, 0.8);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: clamp(0.48rem, 1.2cqi, 0.54rem);
+      font-weight: 700;
+      color: #fef08a;
+      z-index: 3;
+    }
+
+    /* Passive Trait */
+    .passive-trait-box {
+      background: rgba(30, 15, 55, 0.6);
+      border: 1px solid rgba(192, 132, 252, 0.35);
+      border-left: 3px solid #a855f7;
+      border-radius: 5px;
+      padding: 3px 6px;
+      margin-bottom: 4px;
+      transition: all 0.3s ease;
+    }
+    .passive-trait-box.active-resonance {
+      border-color: rgba(245, 158, 11, 0.6);
+      border-left-color: #fbbf24;
+      background: rgba(45, 20, 80, 0.75);
+    }
+    .trait-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1px;
+    }
+    .trait-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .trait-label { font-size: 0.58rem; font-weight: 800; color: #c084fc; }
+    .trait-name { font-size: 0.58rem; font-weight: 700; color: #f8fafc; }
+    .passive-status-indicator { font-size: 0.5rem; color: #fbbf24; font-weight: 700; }
+    .trait-desc { font-size: clamp(0.52rem, 1.3cqi, 0.58rem); color: #cbd5e1; line-height: 1.25; }
+
+    /* Moves */
+    .moves-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .move-item {
+      background: rgba(18, 10, 32, 0.75);
+      border: 1px solid rgba(147, 51, 234, 0.3);
+      border-radius: 6px;
+      padding: 4px 7px;
+    }
+    .move-item.move-ultimate {
+      background: linear-gradient(135deg, rgba(35, 12, 60, 0.8) 0%, rgba(18, 10, 32, 0.8) 100%);
+      border-color: rgba(212, 175, 55, 0.4);
+    }
+    .move-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1px;
+    }
+    .cost-star { font-size: 10px; color: #fbbf24; filter: drop-shadow(0 0 2px #f59e0b); }
+    .cost-star.ult-star { color: #e879f9; }
+    .move-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      margin-left: 6px;
+    }
+    .move-tag { font-size: 0.5rem; background: #7e22ce; color: #fef08a; padding: 1px 3px; border-radius: 2px; font-weight: 800; }
+    .move-name { font-size: clamp(0.65rem, 1.6cqi, 0.72rem); font-weight: 800; color: #fff; }
+    .move-power { font-size: clamp(0.7rem, 1.8cqi, 0.78rem); font-weight: 900; color: #fbbf24; margin-left: auto; }
+    .move-power.ult-power { color: #f43f5e; }
+
+    .cast-btn {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.58rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+    .cast-btn:hover { background: #f59e0b; color: #111; }
+    .cast-ult-btn { background: rgba(168, 85, 247, 0.2); border-color: #c084fc; color: #e879f9; }
+    .cast-ult-btn:hover { background: #a855f7; color: #fff; }
+
+    .move-desc { font-size: clamp(0.5rem, 1.25cqi, 0.56rem); color: #94a3b8; line-height: 1.25; }
+
+    /* Combat Grid */
+    .combat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 3px;
+      background: rgba(10, 5, 20, 0.65);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: 5px;
+      padding: 3px 5px;
+      margin-bottom: 4px;
+    }
+    .cell-label { font-size: 0.48rem; font-weight: 700; color: var(--gold-sheen); }
+    .cell-values { display: flex; flex-direction: column; gap: 1px; }
+    .weak-tag { font-size: 0.5rem; color: #fca5a5; }
+    .resist-tag { font-size: 0.5rem; color: #86efac; }
+    .retreat-cost { font-size: 0.5rem; color: #fef08a; font-weight: 700; }
+    .cd-note { font-size: 0.46rem; color: #94a3b8; }
+
+    /* Footer Bar */
+    .card-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(212, 175, 55, 0.35);
+      padding-top: 3px;
+    }
+    .serial-code { font-family: 'Cinzel', monospace; font-size: 0.54rem; font-weight: 900; color: #fbbf24; }
+    .copyright-notice { font-size: 0.44rem; color: #64748b; }
+    .creator-stamp {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px dashed rgba(212, 175, 55, 0.4);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .stamp-lbl { font-size: 0.42rem; font-weight: 800; color: #94a3b8; }
+    .stamp-signature { font-family: 'Cinzel', serif; font-size: 0.6rem; font-weight: 900; color: #fef08a; }
+
+    .security-seal-hologram {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from calc(var(--ry) * 10deg) at 50% 50%,
+        #fbbf24 0deg, #ec4899 72deg, #38bdf8 144deg, #4ade80 216deg, #a855f7 288deg, #fbbf24 360deg
+      );
+      border: 1.5px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .seal-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.32rem;
+      font-weight: 900;
+      color: #111;
+      line-height: 1;
+    }
+
+    /* ==========================================================================
+       CARD BACK FACE (CERTIFICATE OF AUTHENTICITY)
+       ========================================================================== */
+    .card-back {
+      background: #080410;
+      border: 3px solid #1a102a;
+      outline: 2px solid rgba(212, 175, 55, 0.7);
+      outline-offset: -3px;
+      transform: rotateY(180deg);
+    }
+    .back-frame {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-back-art {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.85);
+    }
+    .back-coa-overlay {
+      position: absolute;
+      inset: clamp(10px, 3cqi, 16px);
+      background: rgba(10, 6, 22, 0.84);
+      border: 1.5px solid rgba(212, 175, 55, 0.6);
+      border-radius: 10px;
+      padding: clamp(10px, 2.5cqi, 14px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+    }
+    .coa-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+      padding-bottom: 6px;
+    }
+    .coa-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.68rem, 1.8cqi, 0.75rem);
+      font-weight: 900;
+      color: #fef08a;
+    }
+    .coa-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .coa-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+      padding-bottom: 3px;
+      font-size: clamp(0.58rem, 1.5cqi, 0.65rem);
+    }
+    .coa-k { color: #94a3b8; }
+    .coa-v { color: #f8fafc; font-weight: 700; }
+    .coa-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(212, 175, 55, 0.4);
+      padding-top: 8px;
+    }
+    .qr-box {
+      width: 28px;
+      height: 28px;
+      background: repeating-conic-gradient(#fff 0% 25%, #000 0% 50%) 50% / 7px 7px;
+      border: 1px solid #fff;
+    }
+
+    /* Stage Floating Controls */
+    .stage-floating-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      position: relative;
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .stage-btn {
+      background: rgba(18, 12, 33, 0.85);
+      border: 1.5px solid rgba(147, 51, 234, 0.35);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: clamp(0.74rem, 1.4vw, 0.82rem);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+    .stage-btn:hover {
+      background: rgba(147, 51, 234, 0.3);
+      border-color: var(--gold-sheen);
+      color: var(--gold-sheen);
+      transform: translateY(-2px);
+    }
+
+    /* ==========================================================================
+       RIGHT / BOTTOM: FROSTED GLASS CONTROL STUDIO
+       ========================================================================== */
+    .forge-sidebar {
+      background: var(--bg-glass);
+      border: 1.5px solid var(--bg-glass-border);
+      border-radius: 18px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      height: fit-content;
+    }
+
+    .sidebar-header {
+      padding: 14px 20px;
+      background: rgba(14, 8, 26, 0.85);
+      border-bottom: 1px solid rgba(147, 51, 234, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-title {
+      font-family: 'Cinzel', 'Noto Serif TC', serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .workshop-serial-tag {
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: var(--gold-sheen);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .sidebar-content {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+    }
+    @media (max-width: 767px) {
+      .sidebar-content {
+        max-height: none; /* Let page scroll naturally on mobile */
+      }
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .group-num {
+      font-family: monospace;
+      font-size: 0.7rem;
+      font-weight: 900;
+      color: var(--gold-sheen);
+      background: rgba(245, 158, 11, 0.15);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .group-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #e2e8f0;
+    }
+    .group-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Foil Selector Grid */
+    .foil-options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .foil-card-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+    .foil-card-opt:hover {
+      background: rgba(147, 51, 234, 0.15);
+      border-color: rgba(147, 51, 234, 0.4);
+    }
+    .foil-card-opt.active {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(147, 51, 234, 0.18) 100%);
+      border-color: var(--gold-sheen);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+    }
+    .foil-badge-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: #1a102c;
+    }
+    .foil-opt-info { display: flex; flex-direction: column; }
+    .foil-opt-title { font-size: 0.78rem; font-weight: 800; color: #fff; }
+    .foil-opt-desc { font-size: 0.65rem; color: var(--text-muted); }
+
+    /* Case Buttons */
+    .case-buttons-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .case-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+    }
+    .case-btn.active {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--gold-sheen);
+      color: var(--gold-sheen);
+    }
+
+    /* Upload & Reset Buttons */
+    .upload-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .studio-action-btn {
+      background: rgba(147, 51, 234, 0.18);
+      border: 1px solid rgba(147, 51, 234, 0.4);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .studio-action-btn:hover {
+      background: rgba(147, 51, 234, 0.35);
+      border-color: var(--purple-arcane);
+    }
+
+    /* Skills test */
+    .skill-sandbox-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .skill-test-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      cursor: pointer;
+      text-align: left;
+    }
+    .skill-test-btn:hover {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: #fbbf24;
+    }
+    .skill-test-btn.test-ult:hover {
+      background: rgba(168, 85, 247, 0.22);
+      border-color: #c084fc;
+    }
+    .skill-info { display: flex; flex-direction: column; flex: 1; }
+    .skill-title { font-size: 0.78rem; font-weight: 800; }
+    .skill-sub { font-size: 0.65rem; color: var(--text-muted); }
+    .skill-cost-tag { font-size: 0.62rem; font-weight: 800; color: #fbbf24; background: rgba(245, 158, 11, 0.15); padding: 1px 5px; border-radius: 3px; }
+
+    /* Footer Export Button */
+    .sidebar-footer {
+      padding: 14px 20px;
+      background: rgba(12, 6, 24, 0.9);
+      border-top: 1px solid rgba(147, 51, 234, 0.2);
+    }
+    .export-btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: none;
+      border-radius: 10px;
+      color: #111;
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      padding: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+      transition: all 0.2s ease;
+    }
+    .export-btn-primary:hover {
+      filter: brightness(1.15);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    }
+
+    /* ==========================================================================
+       CINEMATIC VFX OVERLAYS
+       ========================================================================== */
+    .fx-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      overflow: hidden;
+      display: none;
+    }
+    .fx-overlay.active { display: block; }
+
+    .claw-slash-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    .claw-slash-container.animate-claw {
+      animation: clawSequence 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+    }
+    @keyframes clawSequence {
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .claw-slash {
+      position: absolute;
+      width: clamp(280px, 60vw, 500px);
+      height: 5px;
+      background: linear-gradient(90deg, transparent 0%, #fff 20%, #c084fc 50%, #9333ea 80%, transparent 100%);
+      box-shadow: 0 0 25px #a855f7;
+      border-radius: 50%;
+      transform: rotate(-35deg);
+    }
+    .slash-1 { top: calc(50% - 50px); left: calc(50% - 200px); animation: slashFly 0.4s ease-out forwards; }
+    .slash-2 { top: 50%; left: calc(50% - 200px); animation: slashFly 0.4s ease-out 0.08s forwards; }
+    .slash-3 { top: calc(50% + 50px); left: calc(50% - 200px); animation: slashFly 0.4s ease-out 0.16s forwards; }
+    @keyframes slashFly {
+      0% { transform: rotate(-35deg) scaleX(0) translateX(-80px); opacity: 0; }
+      50% { transform: rotate(-35deg) scaleX(1.2) translateX(0); opacity: 1; }
+      100% { transform: rotate(-35deg) scaleX(1.4) translateX(100px); opacity: 0; }
+    }
+
+    .damage-number {
+      position: absolute;
+      top: 40%;
+      font-family: 'Cinzel', sans-serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 0 20px #f59e0b;
+      animation: floatDmg 1s ease-out forwards;
+    }
+    @keyframes floatDmg {
+      0% { transform: scale(0.5) translateY(30px); opacity: 0; }
+      30% { transform: scale(1.2) translateY(0); opacity: 1; }
+      100% { transform: scale(1) translateY(-40px); opacity: 0; }
+    }
+
+    /* Ultimate */
+    .ult-cinematic-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    .ult-cinematic-container.animate-ult {
+      animation: ultSequence 3.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes ultSequence {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .ult-darkness-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(10, 5, 25, 0.92) 0%, rgba(4, 2, 10, 0.98) 100%);
+    }
+    .ult-full-moon {
+      position: absolute;
+      width: clamp(280px, 50vw, 420px);
+      height: clamp(280px, 50vw, 420px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, #ffffff 0%, #e9d5ff 25%, #c084fc 50%, #6b21a8 80%, transparent 100%);
+      box-shadow: 0 0 100px #c084fc;
+    }
+    .ult-magic-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px dashed rgba(245, 158, 11, 0.85);
+      animation: spinOuter 18s linear infinite;
+    }
+    .circle-outer { width: clamp(340px, 70vw, 560px); height: clamp(340px, 70vw, 560px); }
+    @keyframes spinOuter { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .ult-title-card {
+      position: absolute;
+      bottom: 12%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+      text-align: center;
+    }
+    .ult-main-title {
+      font-family: 'Cinzel Decorative', 'Noto Serif TC', serif;
+      font-size: clamp(1.6rem, 5vw, 2.5rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 25px #c084fc;
+    }
+    .ult-damage-badge {
+      background: linear-gradient(90deg, #ec4899, #8b5cf6);
+      border: 1px solid #fef08a;
+      padding: 5px 18px;
+      border-radius: 30px;
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      font-weight: 900;
+      color: #fff;
+      margin-top: 6px;
+    }
+
+    /* Toast */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: rgba(18, 10, 32, 0.95);
+      border: 1.5px solid var(--gold-sheen);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.3);
+      padding: 9px 20px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      z-index: 3000;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+    }
+    .toast-notification.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body class="mode-night" id="workshopBody">
+  <!-- Dynamic Background Ambient Canvas -->
+  <canvas id="ambientCanvas" class="ambient-canvas"></canvas>
+  <div class="vignette-overlay"></div>
+
+  <!-- Hidden File Input for Real-Time FileReader Portrait Replacement -->
+  <input type="file" id="imageUploadInput" accept="image/*" style="display: none;">
+
+  <!-- Header -->
+  <header class="workshop-header">
+    <div class="header-brand">
+      <div class="brand-crest">
+        <span class="crest-icon">🔮</span>
+      </div>
+      <div class="brand-titles">
+        <h1 class="main-title">LEGEND CARD FORGE <span>傳奇卡牌工坊</span></h1>
+        <p class="sub-title">唯一專屬 3D 鐳射卡牌 · 即時編輯與高解析度匯出系統</p>
+      </div>
+    </div>
+
+    <!-- Quick Status & Action Buttons -->
+    <div class="header-actions">
+      <button id="toggleAudioBtn" class="action-icon-btn active" title="音效開關" aria-label="切換音效">
+        <span class="btn-icon">🔊</span>
+      </button>
+      <button id="toggleEnvBtn" class="action-icon-btn night-active" title="切換日夜環境 (觸發夜間特性)" aria-label="切換日夜環境">
+        <span class="btn-icon">🌙</span>
+      </button>
+      <button id="requestGyroBtn" class="action-icon-btn" title="啟動陀螺儀感應" aria-label="啟動陀螺儀">
+        <span class="btn-icon">📱</span>
+      </button>
+      <button id="resetViewBtn" class="action-icon-btn" title="回正卡牌" aria-label="回正視角">
+        <span class="btn-icon">🎯</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main RWD Workspace Container -->
+  <main class="forge-workspace">
+    <!-- LEFT / TOP: 3D Card Display Arena -->
+    <section class="card-stage-container" id="stageContainer">
+      <div class="astral-moon" id="astralMoon">
+        <div class="moon-body"></div>
+      </div>
+
+      <div class="interaction-hint">
+        <span>✨ 移動滑鼠／手指觸控傾斜探索鐳射光澤 · 文字支援點選即時編輯</span>
+      </div>
+
+      <!-- 3D Perspective Scene -->
+      <div class="card-scene" id="cardScene">
+        <div class="card-wrapper" id="cardWrapper">
+          
+          <!-- Outer Protective Case (PSA 10 / Magnetic / Raw) -->
+          <div class="card-case slab-psa" id="cardCase">
+            <!-- PSA 10 Grading Label Header -->
+            <div class="case-header" id="caseHeader">
+              <div class="psa-label">
+                <div class="psa-brand">
+                  <span class="psa-logo">PSA</span>
+                  <span class="psa-grade">GEM MT 10</span>
+                </div>
+                <div class="psa-info">
+                  <div class="psa-line-1" contenteditable="true">2026 LEGEND WORKSHOP - SAR</div>
+                  <div class="psa-line-2" contenteditable="true">#001 katee - MASTER RANK</div>
+                  <div class="psa-line-3" contenteditable="true">BLACK GOLD EMBOSSED FOIL</div>
+                </div>
+                <div class="psa-barcode-area">
+                  <div class="psa-barcode"></div>
+                  <div class="psa-cert-num" contenteditable="true">#88920261008</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- The Core Card with 180° Flip Engine -->
+            <div class="card-inner foil-gold-ultra" id="cardInner">
+              
+              <!-- ================= CARD FRONT ================= -->
+              <div class="card-face card-front" id="cardFront">
+                <!-- Laser Foil Gradient Overlays -->
+                <div class="foil-layer foil-glare" id="foilGlare"></div>
+                <div class="foil-layer foil-holo" id="foilHolo"></div>
+                <div class="foil-layer foil-emboss" id="foilEmboss"></div>
+
+                <div class="card-frame">
+                  <!-- Top Bar: Name, HP, Element, Rank -->
+                  <div class="card-top-bar">
+                    <div class="top-identity">
+                      <div class="element-orb" title="核心屬性：暗影黑">🌑</div>
+                      <div class="card-titles-wrap">
+                        <span class="card-type-tag" contenteditable="true">【傳奇幻獸・暗影魔女】</span>
+                        <h2 class="card-character-name" id="cardName" contenteditable="true">katee</h2>
+                      </div>
+                    </div>
+
+                    <div class="top-stats">
+                      <div class="hp-gauge" title="能階／生命值">
+                        <span class="hp-label">HP</span>
+                        <span class="hp-val" id="cardHp" contenteditable="true">100</span>
+                      </div>
+                      <div class="rank-tag" title="卡片階級：MASTER">
+                        <span class="rank-crown">👑</span>
+                        <span class="rank-title" contenteditable="true">MASTER</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Stars & Rarity Row -->
+                  <div class="card-stars-row">
+                    <div class="stars-list" contenteditable="true" title="位階標記：6星">★★★★★★</div>
+                    <div class="rarity-badge-sar" contenteditable="true">SAR · 超絕罕貴度</div>
+                  </div>
+
+                  <!-- Illustration Box (Click or drag to replace image) -->
+                  <div class="card-art-box" id="cardArtBox" title="點擊更換肖像圖片">
+                    <div class="art-frame-border">
+                      <div class="corner-filigree top-left"></div>
+                      <div class="corner-filigree top-right"></div>
+                      <div class="corner-filigree bottom-left"></div>
+                      <div class="corner-filigree bottom-right"></div>
+                    </div>
+                    <img src="assets/katee_art.jpg" alt="katee - 暗影魔女黑貓立繪" class="card-illustration" id="cardIllustration" />
+                    <div class="art-upload-overlay">
+                      <span>📁 點擊上傳更換立繪</span>
+                    </div>
+                    <div class="art-badge-tag" contenteditable="true">ILLUS. MRs.lun ✦ SPECIAL ART</div>
+                  </div>
+
+                  <!-- Passive Trait Box -->
+                  <div class="passive-trait-box active-resonance" id="passiveTraitBox">
+                    <div class="trait-header">
+                      <div class="trait-title-wrap">
+                        <span class="trait-symbol">🌙</span>
+                        <span class="trait-label">【被動特性】</span>
+                        <span class="trait-name" contenteditable="true">夜間感知・魔力恢復與隱匿行動</span>
+                      </div>
+                      <div class="passive-status-indicator" id="passiveStatusIndicator">夜間共鳴中 (+25%)</div>
+                    </div>
+                    <p class="trait-desc" contenteditable="true">
+                      在夜晚或月光下，魔力恢復速度提升，並能察覺周圍隱藏的敵人。
+                    </p>
+                  </div>
+
+                  <!-- Moves & Skills Section -->
+                  <div class="moves-container">
+                    <!-- Move 1 -->
+                    <div class="move-item move-claw">
+                      <div class="move-meta">
+                        <div class="cost-icons"><span class="cost-star">★</span></div>
+                        <div class="move-name-wrap">
+                          <span class="move-name" contenteditable="true">暗影貓爪</span>
+                          <span class="move-power" contenteditable="true">DMG 45+</span>
+                        </div>
+                        <button class="cast-btn" id="btnCastClaw" title="發動招式">⚡ 施放</button>
+                      </div>
+                      <p class="move-desc" contenteditable="true">
+                        消耗 1 顆星星值。快速撕裂前方敵人，並有機率使敵人陷入短暫的黑暗狀態。
+                      </p>
+                    </div>
+
+                    <!-- Ultimate Move -->
+                    <div class="move-item move-ultimate">
+                      <div class="move-meta">
+                        <div class="cost-icons">
+                          <span class="cost-star ult-star">★</span>
+                          <span class="cost-star ult-star">★</span>
+                          <span class="cost-star ult-star">★</span>
+                        </div>
+                        <div class="move-name-wrap">
+                          <span class="move-tag">奧義</span>
+                          <span class="move-name" contenteditable="true">滿月禁咒・星夜魔陣</span>
+                          <span class="move-power ult-power" contenteditable="true">180!</span>
+                        </div>
+                        <button class="cast-btn cast-ult-btn" id="btnCastUlt" title="釋放奧義">🔮 發動</button>
+                      </div>
+                      <p class="move-desc" contenteditable="true">
+                        消耗 3 顆星星值。巨大的紫色魔法陣與滿月幻影，釋放大量星辰能量反擊敵人並短暫束縛。
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Combat & Dispatch Mechanism Bar -->
+                  <div class="combat-grid">
+                    <div class="combat-cell">
+                      <span class="cell-label">弱點 WEAKNESS</span>
+                      <div class="cell-values">
+                        <span class="weak-tag" contenteditable="true">☀️ 強光 ×2</span>
+                        <span class="weak-tag" contenteditable="true">💧 流水 / ⛓️ 封印</span>
+                      </div>
+                    </div>
+                    <div class="combat-cell">
+                      <span class="cell-label">抗性 RESISTANCE</span>
+                      <div class="cell-values">
+                        <span class="resist-tag" contenteditable="true">🌑 黑暗 -30</span>
+                        <span class="resist-tag" contenteditable="true">🔮 詛咒 / 🧠 心控</span>
+                      </div>
+                    </div>
+                    <div class="combat-cell">
+                      <span class="cell-label">調度／撤退成本</span>
+                      <div class="cell-values">
+                        <span class="retreat-cost" contenteditable="true">瞬移 ★★★★★</span>
+                        <span class="cd-note" contenteditable="true">奧義冷卻 3 回合</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Footer Bar -->
+                  <div class="card-footer-bar">
+                    <div class="footer-left">
+                      <div class="serial-code" contenteditable="true">No.001/001 ★★★★★★ SAR</div>
+                      <div class="copyright-notice" contenteditable="true">© 2026/10/08 MRs.lun</div>
+                    </div>
+
+                    <div class="footer-center">
+                      <div class="creator-stamp">
+                        <span class="stamp-lbl">CREATOR</span>
+                        <span class="stamp-signature" contenteditable="true">MRs.lun</span>
+                      </div>
+                    </div>
+
+                    <div class="footer-right">
+                      <div class="security-seal-hologram" title="防偽認證雷射微縮印記">
+                        <div class="seal-inner">
+                          <span>AUTH</span>
+                          <span>☽</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= CARD BACK ================= -->
+              <div class="card-face card-back" id="cardBack">
+                <div class="foil-layer foil-glare"></div>
+                <div class="foil-layer foil-holo"></div>
+
+                <div class="back-frame">
+                  <img src="assets/card_back.jpg" alt="傳奇卡牌官方背面" class="card-back-art" />
+                  
+                  <!-- Certificate of Authenticity (COA) Overlay Badge -->
+                  <div class="back-coa-overlay">
+                    <div class="coa-header">
+                      <span>⚜️</span>
+                      <span class="coa-title">CERTIFICATE OF AUTHENTICITY</span>
+                      <span>⚜️</span>
+                    </div>
+                    <div class="coa-body">
+                      <div class="coa-row">
+                        <span class="coa-k">ARTIFACT ID</span>
+                        <span class="coa-v" contenteditable="true">LGN-2026-KATEE-001</span>
+                      </div>
+                      <div class="coa-row">
+                        <span class="coa-k">CHIEF ARTISAN</span>
+                        <span class="coa-v" contenteditable="true" style="color: #fbbf24">MRs.lun</span>
+                      </div>
+                      <div class="coa-row">
+                        <span class="coa-k">EDITION TIER</span>
+                        <span class="coa-v" contenteditable="true">UNIQUE MASTERPIECE (1 of 1)</span>
+                      </div>
+                      <div class="coa-row">
+                        <span class="coa-k">FORGE DATE</span>
+                        <span class="coa-v" contenteditable="true">2026 / 10 / 08</span>
+                      </div>
+                      <div class="coa-row">
+                        <span class="coa-k">FOIL FINISH</span>
+                        <span class="coa-v" id="backFoilName">Gold Ultra 黑金浮雕</span>
+                      </div>
+                      <div class="coa-row">
+                        <span class="coa-k">VERIFY HASH</span>
+                        <span class="coa-v" style="font-family: monospace; color: #38bdf8" contenteditable="true">0x7F4A...B92D</span>
+                      </div>
+                    </div>
+                    <div class="coa-footer">
+                      <div class="qr-box"></div>
+                      <div style="text-align: right; font-size: 0.58rem; color: #94a3b8">
+                        <div>Verified by</div>
+                        <strong style="color: #fef08a" contenteditable="true">MRs.lun</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div> <!-- card-inner -->
+          </div> <!-- card-case -->
+        </div> <!-- card-wrapper -->
+      </div> <!-- card-scene -->
+
+      <!-- Action Floating Bar -->
+      <div class="stage-floating-bar">
+        <button id="btnFlipCard" class="stage-btn" title="翻轉卡牌正面／背面">
+          <span>🔄</span> 翻轉卡牌 (Flip 180°)
+        </button>
+        <button id="btnUploadArt" class="stage-btn" title="上傳本機肖像圖檔">
+          <span>🖼️</span> 更換立繪 (Upload)
+        </button>
+        <button id="btnResetArt" class="stage-btn" title="還原預設 Katee 立繪">
+          <span>↺</span> 重設原畫
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT / BOTTOM: Frosted Glass Control Studio -->
+    <aside class="forge-sidebar" id="forgeSidebar">
+      <div class="sidebar-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span>
+          <h3 class="sidebar-title">工坊鑄造控制台</h3>
+        </div>
+        <span class="workshop-serial-tag">FORGE STUDIO v4.0</span>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- 1. Foil Selector -->
+        <div class="control-group">
+          <div class="group-header">
+            <span class="group-num">01</span>
+            <h4 class="group-title">全息鐳射風格切換器 (FOIL STYLES)</h4>
+          </div>
+          <div class="foil-options-grid" id="foilSelectorGroup">
+            <button class="foil-card-opt active" data-foil="gold-ultra">
+              <div class="foil-badge-icon">🏆</div>
+              <div class="foil-opt-info">
+                <span class="foil-opt-title">Gold Ultra 黑金浮雕 (預設)</span>
+                <span class="foil-opt-desc">曜石黑絲絨底紋 + 24K 燙金微立體雕紋</span>
+              </div>
+            </button>
+            <button class="foil-card-opt" data-foil="cosmic-holo">
+              <div class="foil-badge-icon">🌌</div>
+              <div class="foil-opt-info">
+                <span class="foil-opt-title">Cosmic Holo 幻彩星河</span>
+                <span class="foil-opt-desc">多頻譜極光折射 + 漫天星辰霓虹光斑</span>
+              </div>
+            </button>
+            <button class="foil-card-opt" data-foil="secret-rare">
+              <div class="foil-badge-icon">💎</div>
+              <div class="foil-opt-info">
+                <span class="foil-opt-title">Secret Rare 碎鑽稜鏡</span>
+                <span class="foil-opt-desc">幾何碎鑽切面 + 聚焦高光閃耀</span>
+              </div>
+            </button>
+            <button class="foil-card-opt" data-foil="phantom-rainbow">
+              <div class="foil-badge-icon">🔮</div>
+              <div class="foil-opt-info">
+                <span class="foil-opt-title">Phantom Rainbow 幽暗虹彩</span>
+                <span class="foil-opt-desc">魔導紫青干涉流光 + 暗月幽光漸變</span>
+              </div>
+            </button>
+            <button class="foil-card-opt" data-foil="silver-sterling">
+              <div class="foil-badge-icon">⚡</div>
+              <div class="foil-opt-info">
+                <span class="foil-opt-title">Silver Sterling 白銀秘銀</span>
+                <span class="foil-opt-desc">純銀立體浮雕 + 冷冽鏡面金屬光澤</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Display Case / Slab Selector -->
+        <div class="control-group">
+          <div class="group-header">
+            <span class="group-num">02</span>
+            <h4 class="group-title">收藏卡盒形式 (CASE & SLAB)</h4>
+          </div>
+          <div class="case-buttons-row">
+            <button class="case-btn active" data-case="slab-psa">
+              <span>🏷️</span><span>PSA 10 評級磚</span>
+            </button>
+            <button class="case-btn" data-case="slab-magnetic">
+              <span>🧲</span><span>磁吸金邊卡磚</span>
+            </button>
+            <button class="case-btn" data-case="slab-raw">
+              <span>🎴</span><span>裸卡原畫 (Raw)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Skill Sandbox -->
+        <div class="control-group">
+          <div class="group-header">
+            <span class="group-num">03</span>
+            <h4 class="group-title">技能動態試驗場 (SKILL SANDBOX)</h4>
+          </div>
+          <div class="skill-sandbox-controls">
+            <button class="skill-test-btn" id="testClawBtn">
+              <span>🐾</span>
+              <div class="skill-info">
+                <span class="skill-title">發動「暗影貓爪」</span>
+                <span class="skill-sub">撕裂斬擊 · 黑暗狀態</span>
+              </div>
+              <span class="skill-cost-tag">★ 1星</span>
+            </button>
+            <button class="skill-test-btn test-ult" id="testUltBtn">
+              <span>🌌</span>
+              <div class="skill-info">
+                <span class="skill-title">發動「滿月禁咒・星夜魔陣」</span>
+                <span class="skill-sub">滿月幻影 · 範圍星辰束縛</span>
+              </div>
+              <span class="skill-cost-tag" style="color: #e879f9; background: rgba(168, 85, 247, 0.2)">★★★ 3星</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Quick Edit & Portrait Upload Guide -->
+        <div class="control-group">
+          <div class="group-header">
+            <span class="group-num">04</span>
+            <h4 class="group-title">肖像與文字即時編輯 (REAL-TIME EDIT)</h4>
+          </div>
+          <p class="group-sub">直接點擊卡面上任何名稱、HP 數值、招式說明即可即時編輯文字；點擊下方按鈕或直接點選卡面插畫框，可上傳本機圖檔即時預覽：</p>
+          <div class="upload-btn-row">
+            <button class="studio-action-btn" id="btnUploadArtSide">
+              <span>🖼️</span> 上傳自訂肖像
+            </button>
+            <button class="studio-action-btn" id="btnResetArtSide">
+              <span>↺</span> 還原預設立繪
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Button -->
+      <div class="sidebar-footer">
+        <button class="export-btn-primary" id="btnExportPng">
+          <span>📸</span> 一鍵匯出高解析度 PNG 卡牌
+        </button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- VFX Overlays -->
+  <div class="fx-overlay" id="fxOverlay">
+    <div class="claw-slash-container" id="clawSlashContainer">
+      <div class="claw-slash slash-1"></div>
+      <div class="claw-slash slash-2"></div>
+      <div class="claw-slash slash-3"></div>
+      <div class="damage-number">45! 暗影撕裂</div>
+    </div>
+
+    <div class="ult-cinematic-container" id="ultContainer">
+      <div class="ult-darkness-backdrop"></div>
+      <div class="ult-full-moon"></div>
+      <div class="ult-magic-circle circle-outer"></div>
+      <div class="ult-title-card">
+        <h3 class="ult-main-title">滿月禁咒・星夜魔陣</h3>
+        <div class="ult-damage-badge">CRITICAL 180! ✦ 領域束縛</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-notification" id="toastNotification">
+    <span id="toastIcon">✨</span>
+    <span id="toastMsg">通知訊息</span>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT ENGINE (ZERO DEPENDENCY)
+       ========================================================================== -->
+  <script>
+    (() => {
+      'use strict';
+
+      // Elements
+      const workshopBody = document.getElementById('workshopBody');
+      const stageContainer = document.getElementById('stageContainer');
+      const cardWrapper = document.getElementById('cardWrapper');
+      const cardCase = document.getElementById('cardCase');
+      const cardInner = document.getElementById('cardInner');
+      const cardFront = document.getElementById('cardFront');
+      const backFoilName = document.getElementById('backFoilName');
+      const cardArtBox = document.getElementById('cardArtBox');
+      const cardIllustration = document.getElementById('cardIllustration');
+      const imageUploadInput = document.getElementById('imageUploadInput');
+
+      const btnFlipCard = document.getElementById('btnFlipCard');
+      const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+      const toggleEnvBtn = document.getElementById('toggleEnvBtn');
+      const requestGyroBtn = document.getElementById('requestGyroBtn');
+      const resetViewBtn = document.getElementById('resetViewBtn');
+
+      const btnCastClaw = document.getElementById('btnCastClaw');
+      const btnCastUlt = document.getElementById('btnCastUlt');
+      const testClawBtn = document.getElementById('testClawBtn');
+      const testUltBtn = document.getElementById('testUltBtn');
+
+      const btnUploadArt = document.getElementById('btnUploadArt');
+      const btnResetArt = document.getElementById('btnResetArt');
+      const btnUploadArtSide = document.getElementById('btnUploadArtSide');
+      const btnResetArtSide = document.getElementById('btnResetArtSide');
+      const btnExportPng = document.getElementById('btnExportPng');
+
+      const fxOverlay = document.getElementById('fxOverlay');
+      const clawSlashContainer = document.getElementById('clawSlashContainer');
+      const ultContainer = document.getElementById('ultContainer');
+
+      const toastNotification = document.getElementById('toastNotification');
+      const toastIcon = document.getElementById('toastIcon');
+      const toastMsg = document.getElementById('toastMsg');
+
+      const passiveTraitBox = document.getElementById('passiveTraitBox');
+      const passiveStatusIndicator = document.getElementById('passiveStatusIndicator');
+
+      const defaultArtSrc = 'assets/katee_art.jpg';
+
+      // State
+      const state = {
+        audioEnabled: true,
+        isNight: true,
+        isFlipped: false,
+        currentFoil: 'gold-ultra',
+        currentCase: 'slab-psa',
+        isTracking: false,
+        isAttacking: false,
+        gyroActive: false,
+        rx: 0,
+        ry: 0
+      };
+
+      // Toast helper
+      let toastTimer = null;
+      function showToast(icon, message) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toastIcon.textContent = icon;
+        toastMsg.textContent = message;
+        toastNotification.classList.add('show');
+        toastTimer = setTimeout(() => {
+          toastNotification.classList.remove('show');
+        }, 2800);
+      }
+
+      // ======================================================================
+      // WEB AUDIO SYNTHESIZER
+      // ======================================================================
+      let audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playSound(type) {
+        if (!state.audioEnabled || !audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        if (type === 'flip') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(480, now + 0.15);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'claw') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(900, now);
+          osc.frequency.exponentialRampToValueAtTime(220, now + 0.22);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.24);
+        } else if (type === 'ult') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(100, now);
+          osc.frequency.exponentialRampToValueAtTime(420, now + 1.2);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 2.8);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 2.8);
+        } else if (type === 'chime') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(987.77, now);
+          osc.frequency.exponentialRampToValueAtTime(1567.98, now + 0.15);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      }
+
+      window.addEventListener('pointerdown', initAudio, { once: true });
+
+      // ======================================================================
+      // 3D PARALLAX & TILT ENGINE (CURSOR + TOUCH + GYRO)
+      // ======================================================================
+      function applyTilt(rotX, rotY, px = 50, py = 50) {
+        state.rx = rotX;
+        state.ry = rotY;
+
+        cardWrapper.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+        cardInner.style.setProperty('--rx', `${rotX.toFixed(2)}deg`);
+        cardInner.style.setProperty('--ry', `${rotY.toFixed(2)}deg`);
+        cardInner.style.setProperty('--mx', `${px.toFixed(1)}%`);
+        cardInner.style.setProperty('--my', `${py.toFixed(1)}%`);
+      }
+
+      function resetTilt() {
+        cardWrapper.classList.remove('is-tracking');
+        applyTilt(0, 0, 50, 50);
+      }
+
+      // Pointer / Mouse / Touch move on stage
+      function handlePointerMove(clientX, clientY) {
+        const rect = cardInner.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+
+        const maxTilt = 20;
+        const normX = Math.max(-1, Math.min(1, dx / (rect.width * 0.8)));
+        const normY = Math.max(-1, Math.min(1, dy / (rect.height * 0.8)));
+
+        const rotY = normX * maxTilt;
+        const rotX = -normY * maxTilt;
+
+        const px = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+        const py = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+
+        cardWrapper.classList.add('is-tracking');
+        applyTilt(rotX, rotY, px, py);
+      }
+
+      stageContainer.addEventListener('mousemove', (e) => {
+        if (!state.gyroActive) {
+          handlePointerMove(e.clientX, e.clientY);
+        }
+      });
+
+      stageContainer.addEventListener('mouseleave', () => {
+        if (!state.gyroActive) {
+          resetTilt();
+        }
+      });
+
+      // Touch drag for mobile
+      stageContainer.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches.length > 0) {
+          const t = e.touches[0];
+          handlePointerMove(t.clientX, t.clientY);
+        }
+      }, { passive: true });
+
+      stageContainer.addEventListener('touchend', () => {
+        if (!state.gyroActive) {
+          resetTilt();
+        }
+      });
+
+      // Gyroscope (DeviceOrientationEvent)
+      function handleOrientation(e) {
+        if (!state.gyroActive) return;
+        const gamma = e.gamma || 0; // Left-Right [-90, 90]
+        const beta = e.beta || 0;   // Front-Back [-180, 180]
+
+        const rotY = Math.max(-25, Math.min(25, gamma * 0.7));
+        const rotX = Math.max(-25, Math.min(25, (beta - 40) * 0.7));
+
+        const px = 50 + (rotY / 25) * 40;
+        const py = 50 + (rotX / 25) * 40;
+
+        cardWrapper.classList.add('is-tracking');
+        applyTilt(rotX, rotY, px, py);
+      }
+
+      requestGyroBtn.addEventListener('click', () => {
+        initAudio();
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          DeviceOrientationEvent.requestPermission().then(perm => {
+            if (perm === 'granted') {
+              enableGyro();
+            } else {
+              showToast('⚠️', '陀螺儀權限已被拒絕');
+            }
+          }).catch(err => {
+            showToast('⚠️', '無法啟動陀螺儀：' + err.message);
+          });
+        } else if (window.DeviceOrientationEvent) {
+          enableGyro();
+        } else {
+          showToast('⚠️', '此裝置不支援陀螺儀感應');
+        }
+      });
+
+      function enableGyro() {
+        state.gyroActive = !state.gyroActive;
+        requestGyroBtn.classList.toggle('active', state.gyroActive);
+        if (state.gyroActive) {
+          window.addEventListener('deviceorientation', handleOrientation);
+          showToast('📱', '陀螺儀已連動：傾斜手機感受鐳射光斑！');
+        } else {
+          window.removeEventListener('deviceorientation', handleOrientation);
+          resetTilt();
+          showToast('⏸️', '已關閉陀螺儀');
+        }
+      }
+
+      resetViewBtn.addEventListener('click', () => {
+        initAudio();
+        state.gyroActive = false;
+        requestGyroBtn.classList.remove('active');
+        window.removeEventListener('deviceorientation', handleOrientation);
+        resetTilt();
+        showToast('🎯', '卡牌視角已平滑回正');
+      });
+
+      // ======================================================================
+      // 180° CARD FLIP
+      // ======================================================================
+      function flipCard() {
+        initAudio();
+        state.isFlipped = !state.isFlipped;
+        cardInner.classList.toggle('is-flipped', state.isFlipped);
+        playSound('flip');
+
+        if (state.isFlipped) {
+          showToast('📜', '已翻轉至背面 · 檢視原廠防偽鑑定證書 (COA)');
+        } else {
+          showToast('🎴', '已翻轉至正面 · 檢視 katee 3D 鐳射立繪');
+        }
+      }
+
+      btnFlipCard.addEventListener('click', flipCard);
+      cardInner.addEventListener('click', (e) => {
+        // Do not flip if clicked on contenteditable or button
+        if (e.target.isContentEditable || e.target.closest('button') || e.target.closest('.card-art-box')) return;
+        flipCard();
+      });
+
+      // ======================================================================
+      // FOIL FINISH SWITCHER
+      // ======================================================================
+      const foilButtons = document.querySelectorAll('.foil-card-opt');
+      const foilTitles = {
+        'gold-ultra': 'Gold Ultra 黑金浮雕',
+        'cosmic-holo': 'Cosmic Holo 幻彩星河',
+        'secret-rare': 'Secret Rare 碎鑽稜鏡',
+        'phantom-rainbow': 'Phantom Rainbow 幽暗虹彩',
+        'silver-sterling': 'Silver Sterling 白銀秘銀'
+      };
+
+      foilButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          initAudio();
+          const foil = btn.getAttribute('data-foil');
+          if (state.currentFoil === foil) return;
+
+          foilButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          cardInner.classList.remove(
+            'foil-gold-ultra',
+            'foil-cosmic-holo',
+            'foil-secret-rare',
+            'foil-phantom-rainbow',
+            'foil-silver-sterling'
+          );
+          cardInner.classList.add(`foil-${foil}`);
+          state.currentFoil = foil;
+          backFoilName.textContent = foilTitles[foil] || foil;
+
+          playSound('chime');
+          showToast('✨', `已切換鐳射箔膜風格：${foilTitles[foil]}`);
+        });
+      });
+
+      // ======================================================================
+      // DISPLAY CASE SWITCHER
+      // ======================================================================
+      const caseButtons = document.querySelectorAll('.case-btn');
+      caseButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          initAudio();
+          const caseType = btn.getAttribute('data-case');
+          if (state.currentCase === caseType) return;
+
+          caseButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          cardCase.classList.remove('slab-psa', 'slab-magnetic', 'slab-raw');
+          cardCase.classList.add(caseType);
+          state.currentCase = caseType;
+
+          showToast('🏷️', `已套用展示盒：${btn.textContent.trim()}`);
+        });
+      });
+
+      // ======================================================================
+      // FILEREADER API: REAL-TIME PORTRAIT IMAGE REPLACEMENT
+      // ======================================================================
+      function triggerImageUpload() {
+        initAudio();
+        imageUploadInput.click();
+      }
+
+      cardArtBox.addEventListener('click', triggerImageUpload);
+      btnUploadArt.addEventListener('click', triggerImageUpload);
+      btnUploadArtSide.addEventListener('click', triggerImageUpload);
+
+      imageUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          showToast('⚠️', '請選擇圖片檔案格式 (PNG, JPG, WEBP)');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          cardIllustration.src = loadEvent.target.result;
+          showToast('🖼️', '肖像圖片替換成功！即時套用全息鐳射鍍層');
+          playSound('chime');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function resetPortraitArt() {
+        initAudio();
+        cardIllustration.src = defaultArtSrc;
+        imageUploadInput.value = '';
+        showToast('↺', '已還原為預設 Katee 暗影魔女原畫');
+      }
+
+      btnResetArt.addEventListener('click', resetPortraitArt);
+      btnResetArtSide.addEventListener('click', resetPortraitArt);
+
+      // ======================================================================
+      // SKILL ATTACK FX
+      // ======================================================================
+      function triggerShadowClaw() {
+        if (state.isAttacking) return;
+        state.isAttacking = true;
+        initAudio();
+        playSound('claw');
+
+        fxOverlay.classList.add('active');
+        clawSlashContainer.classList.add('animate-claw');
+        showToast('🐾', '發動招式【暗影貓爪】！暗影撕裂斬擊造成 45+ 傷害');
+
+        setTimeout(() => {
+          clawSlashContainer.classList.remove('animate-claw');
+          fxOverlay.classList.remove('active');
+          state.isAttacking = false;
+        }, 1300);
+      }
+
+      function triggerUltimateSpell() {
+        if (state.isAttacking) return;
+        state.isAttacking = true;
+        initAudio();
+        playSound('ult');
+
+        fxOverlay.classList.add('active');
+        ultContainer.classList.add('animate-ult');
+        showToast('🔮', '奧義覺醒【滿月禁咒・星夜魔陣】！星辰爆擊 180！');
+
+        setTimeout(() => {
+          ultContainer.classList.remove('animate-ult');
+          fxOverlay.classList.remove('active');
+          state.isAttacking = false;
+        }, 3400);
+      }
+
+      btnCastClaw.addEventListener('click', (e) => { e.stopPropagation(); triggerShadowClaw(); });
+      testClawBtn.addEventListener('click', triggerShadowClaw);
+
+      btnCastUlt.addEventListener('click', (e) => { e.stopPropagation(); triggerUltimateSpell(); });
+      testUltBtn.addEventListener('click', triggerUltimateSpell);
+
+      // ======================================================================
+      // DAY / NIGHT & PASSIVE TRAIT SYNERGY
+      // ======================================================================
+      toggleEnvBtn.addEventListener('click', () => {
+        initAudio();
+        state.isNight = !state.isNight;
+
+        if (state.isNight) {
+          workshopBody.classList.remove('mode-day');
+          workshopBody.classList.add('mode-night');
+          toggleEnvBtn.classList.add('night-active');
+          toggleEnvBtn.querySelector('.btn-icon').textContent = '🌙';
+
+          passiveTraitBox.classList.add('active-resonance');
+          passiveStatusIndicator.textContent = '夜間共鳴中 (+25%)';
+          showToast('🌙', '進入夜晚月光環境：觸發【夜間感知】魔力恢復加速！');
+        } else {
+          workshopBody.classList.remove('mode-night');
+          workshopBody.classList.add('mode-day');
+          toggleEnvBtn.classList.remove('night-active');
+          toggleEnvBtn.querySelector('.btn-icon').textContent = '☀️';
+
+          passiveTraitBox.classList.remove('active-resonance');
+          passiveStatusIndicator.textContent = '常態待機模式';
+          showToast('☀️', '進入日間白晝環境：被動技能進入常態待機。');
+        }
+      });
+
+      // Audio Toggle
+      toggleAudioBtn.addEventListener('click', () => {
+        state.audioEnabled = !state.audioEnabled;
+        toggleAudioBtn.classList.toggle('active', state.audioEnabled);
+        const icon = toggleAudioBtn.querySelector('.btn-icon');
+        if (state.audioEnabled) {
+          icon.textContent = '🔊';
+          initAudio();
+          showToast('🔊', '奧術音訊已開啟');
+        } else {
+          icon.textContent = '🔇';
+          showToast('🔇', '奧術音訊已靜音');
+        }
+      });
+
+      // ======================================================================
+      // HTML2CANVAS: ONE-CLICK HIGH-RES PNG EXPORT
+      // ======================================================================
+      btnExportPng.addEventListener('click', async () => {
+        initAudio();
+        if (typeof html2canvas === 'undefined') {
+          showToast('⚠️', '正在載入匯出元件，請稍候重試...');
+          return;
+        }
+
+        showToast('📷', '正在生成超高解析度 PNG 卡牌，請稍候...');
+
+        // Save original transforms and reset to flat view for distortion-free capture
+        const origWrapperTransform = cardWrapper.style.transform;
+        const origCaseTransform = cardCase.style.transform;
+        cardWrapper.style.transform = 'none';
+
+        try {
+          // Render using html2canvas
+          const target = state.currentCase === 'slab-raw' ? cardInner : cardCase;
+          const canvas = await html2canvas(target, {
+            scale: 3, // 3x scale for crystal-clear print quality
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false
+          });
+
+          // Create download link
+          const link = document.createElement('a');
+          const cardNameText = document.getElementById('cardName').textContent.trim() || 'katee';
+          link.download = `${cardNameText}_SAR_No001_3DCard.png`;
+          link.href = canvas.toDataURL('image/png');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          showToast('✅', `卡牌 ${cardNameText} 高解析度 PNG 匯出成功！`);
+          playSound('chime');
+        } catch (err) {
+          console.error(err);
+          showToast('⚠️', '匯出失敗：' + err.message);
+        } finally {
+          // Restore 3D transform
+          cardWrapper.style.transform = origWrapperTransform;
+        }
+      });
+
+      // ======================================================================
+      // AMBIENT PARTICLES (CANVAS)
+      // ======================================================================
+      const canvas = document.getElementById('ambientCanvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      });
+
+      const particles = [];
+      for (let i = 0; i < 50; i++) {
+        particles.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 2.2 + 0.8,
+          sy: -(Math.random() * 0.5 + 0.2),
+          sx: (Math.random() - 0.5) * 0.4,
+          a: Math.random() * 0.6 + 0.2,
+          c: Math.random() > 0.4 ? '#c084fc' : '#fbbf24'
+        });
+      }
+
+      function drawParticles() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.y += p.sy;
+          p.x += p.sx;
+          if (p.y < -10) p.y = h + 10;
+          if (p.x < -10) p.x = w + 10;
+          if (p.x > w + 10) p.x = -10;
+
+          ctx.fillStyle = p.c;
+          ctx.globalAlpha = p.a;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(drawParticles);
+      }
+      requestAnimationFrame(drawParticles);
+
+      console.log('🌟 傳奇卡牌工坊 v4.0: 響應式 RWD、全息 3D 陀螺儀、即時圖文編輯與 PNG 匯出系統已就緒');
+    })();
+  </script>
+</body>
+</html>
